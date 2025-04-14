@@ -41,7 +41,11 @@ using namespace std::chrono_literals; // For time suffixes like 1s, 500ms
 const std::string I2C_BUS_PATH = "/dev/i2c-1"; // Path used by Linux impl, informational for Stub
 const uint8_t BME280_ADDRESS = BME280::DEFAULT_ADDRESS; // Or 0x77 if needed
 
+#if defined(PLATFORM_LINUX_RPI)
+const std::string MQTT_BROKER_ADDRESS = "tcp://192.168.0.17:1883"; // Use tcp:// for C++ Paho client
+#else
 const std::string MQTT_BROKER_ADDRESS = "tcp://localhost:1883"; // Use tcp:// for C++ Paho client
+#endif
 const std::string MQTT_CLIENT_ID = "rpi_sensor_hub_" + PLATFORM_NAME; // Platform-specific ID
 const std::string MQTT_TOPIC_BME280 = "rpisensor/data/bme280"; // Topic for BME280 data
 

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPi Sensor Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Use Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Simple animation for value updates */
+        .value-update-flash {
+            animation: flashBackground 0.4s ease-out;
+        }
+        @keyframes flashBackground {
+            0% { background-color: rgba(250, 204, 21, 0.4); } /* Tailwind yellow-300 with opacity */
+            100% { background-color: transparent; }
+        }
+        /* Style for connection status */
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .status-disconnected { background-color: #ef4444; } /* red-500 */
+        .status-connecting { background-color: #f59e0b; } /* amber-500 */
+        .status-connected { background-color: #22c55e; } /* green-500 */
+        .status-error { background-color: #ef4444; } /* red-500 */
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 text-center">Sensor Hub Dashboard</h1>
+
+        <div class="mb-6 text-center text-sm font-medium text-gray-600">
+            <span id="status-dot" class="status-dot status-disconnected"></span>
+            Status: <span id="status-text">Disconnected</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center shadow hover:shadow-lg transition-shadow duration-200">
+                <h2 class="text-lg font-semibold text-blue-800 mb-2">Temperature</h2>
+                <p class="text-3xl font-bold text-blue-600">
+                    <span id="temperature-value" class="value-display">--</span><span class="text-xl">°C</span>
+                </p>
+            </div>
+
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center shadow hover:shadow-lg transition-shadow duration-200">
+                <h2 class="text-lg font-semibold text-green-800 mb-2">Humidity</h2>
+                <p class="text-3xl font-bold text-green-600">
+                    <span id="humidity-value" class="value-display">--</span><span class="text-xl">%</span>
+                </p>
+            </div>
+
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center shadow hover:shadow-lg transition-shadow duration-200">
+                <h2 class="text-lg font-semibold text-purple-800 mb-2">Pressure</h2>
+                <p class="text-3xl font-bold text-purple-600">
+                    <span id="pressure-value" class="value-display">--</span><span class="text-xl"> hPa</span>
+                </p>
+            </div>
+        </div>
+
+         <div class="mt-6 text-center text-xs text-gray-500">
+            Last Update: <span id="last-update">Never</span> |
+            Platform: <span id="platform-info">N/A</span>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const brokerUrl = 'ws://localhost:9001'; // IMPORTANT: Use ws:// and your WebSocket port
+        const topic = 'rpisensor/data/bme280';    // Topic your C++ app publishes to
+        const clientId = 'web_dashboard_' + Math.random().toString(16).substring(2, 10);
+
+        // --- DOM Elements ---
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const tempValue = document.getElementById('temperature-value');
+        const humidityValue = document.getElementById('humidity-value');
+        const pressureValue = document.getElementById('pressure-value');
+        const lastUpdateSpan = document.getElementById('last-update');
+        const platformInfoSpan = document.getElementById('platform-info');
+
+        // --- Helper Functions ---
+        function updateStatus(text, cssClass) {
+            console.log("Status:", text);
+            statusText.textContent = text;
+            statusDot.className = `status-dot ${cssClass}`; // Replace all classes
+        }
+
+        function applyUpdateAnimation(element) {
+            if (!element) return;
+            element.classList.add('value-update-flash');
+            // Remove the class after the animation completes
+            setTimeout(() => {
+                element.classList.remove('value-update-flash');
+            }, 400); // Match animation duration
+        }
+
+        function updateElement(element, value, precision = 1) {
+             if (element && value !== undefined && value !== null) {
+                try {
+                    element.textContent = parseFloat(value).toFixed(precision);
+                    applyUpdateAnimation(element.parentElement); // Apply flash to parent <p>
+                } catch (e) {
+                    console.error("Error updating element:", e);
+                    element.textContent = 'Err';
+                }
+            } else if (element) {
+                element.textContent = '--'; // Reset if value is null/undefined
+            }
+        }
+
+        // --- MQTT Client Logic ---
+        const options = {
+            clientId: clientId,
+            clean: true,
+            connectTimeout: 4000, // Milliseconds
+            // Add username/password if your broker requires authentication
+            // username: 'user',
+            // password: 'password',
+        };
+
+        console.log(`Attempting to connect to MQTT broker at ${brokerUrl}`);
+        updateStatus('Connecting...', 'status-connecting');
+        const client = mqtt.connect(brokerUrl, options);
+
+        // --- Event Handlers ---
+        client.on('connect', () => {
+            updateStatus('Connected', 'status-connected');
+            client.subscribe(topic, (err) => {
+                if (!err) {
+                    console.log(`Successfully subscribed to topic: ${topic}`);
+                } else {
+                    console.error(`Failed to subscribe to topic ${topic}:`, err);
+                    updateStatus('Subscription Error', 'status-error');
+                }
+            });
+        });
+
+        client.on('reconnect', () => {
+            updateStatus('Reconnecting...', 'status-connecting');
+        });
+
+        client.on('close', () => {
+            updateStatus('Disconnected', 'status-disconnected');
+        });
+
+        client.on('offline', () => {
+            updateStatus('Offline', 'status-disconnected');
+        });
+
+        client.on('error', (err) => {
+            console.error('MQTT Connection Error:', err);
+            updateStatus('Error', 'status-error');
+            // client.end(); // Optionally close connection on error
+        });
+
+        client.on('message', (receivedTopic, message) => {
+            // message is Buffer, convert to string
+            const messageString = message.toString();
+            console.log(`Received message on ${receivedTopic}: ${messageString}`);
+
+            if (receivedTopic === topic) {
+                try {
+                    const data = JSON.parse(messageString);
+
+                    // Update DOM elements with received data
+                    updateElement(tempValue, data.temperature_celsius, 1);
+                    updateElement(humidityValue, data.humidity_percent, 1);
+                    updateElement(pressureValue, data.pressure_hpa, 1);
+
+                    // Update timestamp and platform info
+                    if (lastUpdateSpan && data.timestamp) {
+                        // Format timestamp for display (optional)
+                        try {
+                             const date = new Date(data.timestamp);
+                             lastUpdateSpan.textContent = date.toLocaleString();
+                        } catch {
+                             lastUpdateSpan.textContent = data.timestamp; // Fallback
+                        }
+                    }
+                     if (platformInfoSpan && data.platform) {
+                        platformInfoSpan.textContent = data.platform;
+                    }
+
+                } catch (e) {
+                    console.error('Error parsing received JSON:', e);
+                    console.error('Received message string:', messageString);
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>

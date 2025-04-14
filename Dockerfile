@@ -24,7 +24,7 @@ RUN apt-get update && \
 # --- UPDATE THIS URL ---
 # Download and unpack the AARCH64-HOSTED ARM GNU Toolchain targeting arm-none-linux-gnueabihf
 # Find the correct URL from https://developer.arm.com/downloads/-/gnu-a
-ARG TOOLCHAIN_URL="https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-aarch64-arm-none-linux-gnueabihf.tar.xz"
+ARG TOOLCHAIN_URL="https://developer.arm.com/-/media/Files/downloads/gnu/12.2.rel1/binrel/arm-gnu-toolchain-12.2.rel1-aarch64-arm-none-linux-gnueabihf.tar.xz"
 
 RUN echo "Downloading AARCH64 Toolchain from ${TOOLCHAIN_URL}..." && \
     mkdir -p ${ARM_TOOLCHAIN_PATH} && \
