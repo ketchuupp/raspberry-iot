@@ -19,6 +19,9 @@ target_include_directories(${IOTest}
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${include_files_private}
+    ${CMAKE_SOURCE_DIR}/Components/Interfaces/include
+    # Include path for Mocks (adjust path as needed)
+    ${CMAKE_SOURCE_DIR}/Tests/Mocks
 
     PUBLIC
     ${DEFAULT_INCLUDE_DIRECTORIES}
@@ -34,6 +37,7 @@ target_link_libraries(${IOTest}
 
     PUBLIC
     ${componentLib}
+    Interfaces
     gtest
     gmock
     ${DEFAULT_LIBRARIES}

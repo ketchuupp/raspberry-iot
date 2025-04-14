@@ -100,4 +100,4 @@ install(DIRECTORY include/ DESTINATION include)
 # -----------------------------------------------------------------------------
 # Unit tests
 # -----------------------------------------------------------------------------
-# include(Test.cmake)
+include(Test.cmake)
