@@ -43,8 +43,8 @@ An accompanying HTML/JavaScript dashboard (`dashboard.html` - *Note: You need to
 
 1.  **Clone the Repository:**
     ```bash
-    git clone <your-repository-url>
-    cd <your-repository-name>
+    git clone https://github.com/ketchuupp/raspberry-iot
+    cd raspberry-iot
     ```
 2.  **Dependencies:** External libraries (Paho MQTT C/C++, GoogleTest, nlohmann/json) are automatically downloaded and built by CMake using FetchContent during the configuration step. No manual installation is needed.
 
