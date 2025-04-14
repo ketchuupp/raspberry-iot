@@ -37,6 +37,8 @@ add_library(${componentLib}
 target_include_directories(${componentLib} 
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    # Need to include BME280 defs for the cpp file
+    ${CMAKE_SOURCE_DIR}/Components/SensorBME280/include
 
     PUBLIC
     ${DEFAULT_INCLUDE_DIRECTORIES}

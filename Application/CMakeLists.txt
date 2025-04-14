@@ -62,17 +62,6 @@ else() # Fallback for ALL other systems
     target_link_libraries(${applicationName} PRIVATE StubI2C_Manager)
 endif()
 
-# Conditionally link the *concrete* I2C implementation library target
-# This ensures the symbols needed by SensorBME280 (which uses the II2C_Bus interface) are resolved
-# if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-#     target_link_libraries(${applicationName} PRIVATE LinuxI2C_Manager)
-# elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-#     target_link_libraries(${applicationName} PRIVATE StubI2C_Manager)
-# else() # Fallback for other systems
-#     target_link_libraries(${applicationName} PRIVATE StubI2C_Manager)
-# endif()
-
-
 # -----------------------------------------------------------------------------
 # Compile definitions (Inherited + App Specific)
 # -----------------------------------------------------------------------------

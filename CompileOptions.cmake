@@ -1,6 +1,6 @@
 # CompileOptions.cmake
 
-set(CMAKE_CXX_STANDARD 23 CACHE STRING "the c++ standard to use for this project")
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "the c++ standard to use for this project")
 set(CMAKE_CXX_STANDARD_REQUIRED OUTPUT_NAME)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -36,7 +36,7 @@ set(CMAKE_C_FLAGS_RELEASE ${GCC_COMMON_FLAGS} -O3)
 set(DEFAULT_INCLUDE_DIRECTORIES)
 
 # Libraries
-set(DEFAULT_LIBRARIESs)
+set(DEFAULT_LIBRARIES)
 
 # Compile definitions
 set(DEFAULT_COMPILE_DEFINITIONS)

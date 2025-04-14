@@ -150,8 +150,6 @@ int main() {
             payload_json["platform"] = PLATFORM_NAME; // Indicate build type
 
             std::string payload_str = payload_json.dump(); // Serialize JSON to string
-            // std::cout << payload_json;
-            // std::string payload_str{};
 
             // Publish data via MQTT if connected
             if (mqtt_client->isConnected()) {

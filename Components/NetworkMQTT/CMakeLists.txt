@@ -26,9 +26,9 @@ set(source_files
 find_package(Threads REQUIRED)
 
 # Find OpenSSL IF Paho C was built with SSL (PAHO_WITH_SSL was set to OFF)
-if(PAHO_WITH_SSL)
-   find_package(OpenSSL REQUIRED)
-endif()
+# if(PAHO_WITH_SSL)
+#    find_package(OpenSSL REQUIRED)
+# endif()
 
 # -----------------------------------------------------------------------------
 # Create library
@@ -63,7 +63,13 @@ target_link_libraries(${componentLib}
 
     PUBLIC
     ${DEFAULT_LIBRARIES}
+    Threads::Threads
     PahoMqttCpp::paho-mqttpp3
+
+    # Link OpenSSL if needed
+    # if(PAHO_WITH_SSL)
+    #    OpenSSL::SSL OpenSSL::Crypto
+    # endif()
 
     INTERFACE
 )

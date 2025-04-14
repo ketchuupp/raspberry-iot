@@ -7,17 +7,6 @@
 #include <cstdint>
 #include <iostream> // For stub messages
 
-// Forward declare sensor defs if needed for dummy data generation
-namespace SensorHub::Components { namespace BME280_STUB {
-    constexpr uint8_t REG_CHIP_ID = 0xD0;
-    constexpr uint8_t CHIP_ID_VALUE = 0x60;
-    constexpr uint8_t DEFAULT_ADDRESS = 0x76;
-    constexpr uint8_t REG_CALIB_DT1_LSB = 0x88;
-    constexpr uint8_t REG_CALIB_DH1 = 0xA1;
-    constexpr uint8_t REG_CALIB_DH2_LSB = 0xE1;
-    constexpr uint8_t REG_PRESS_MSB = 0xF7;
-}} // namespace SensorHub::Components
-
 namespace SensorHub::Components {
 
 // Inherit from the interface

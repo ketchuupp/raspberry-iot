@@ -55,7 +55,6 @@ target_link_libraries(${componentLib}
 
     PUBLIC
     ${DEFAULT_LIBRARIES}
-    # ${I2C_LIBRARIES}     # Link libi2c from pkg-config
     Interfaces
 
     INTERFACE
