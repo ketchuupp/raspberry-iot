@@ -1,0 +1,1 @@
+set(BUILD_TARGET_RPI TRUE CACHE BOOL "Explicitly building for Raspberry Pi target")
