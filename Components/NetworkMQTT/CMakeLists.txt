@@ -43,6 +43,7 @@ add_library(${componentLib}
 # Include direcories
 # -----------------------------------------------------------------------------
 target_include_directories(${componentLib} 
+    SYSTEM
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 

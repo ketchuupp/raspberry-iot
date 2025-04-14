@@ -224,7 +224,7 @@ void MqttPublisher::on_failure(const mqtt::token& tok) {
 // Action listener callback: Invoked if the connect *action* was successfully
 // queued or sent by the Paho library. This *doesn't* mean connection to the
 // broker is complete yet (that's handled by the 'connected' callback).
-void MqttPublisher::on_success(const mqtt::token& tok) {
+void MqttPublisher::on_success([[maybe_unused]] const mqtt::token& tok) {
     // This callback isn't strictly necessary for determining connection status,
     // as the 'connected' callback is the definitive one. We primarily use it
     // to signal the waiting connect() method.
@@ -276,14 +276,14 @@ void MqttPublisher::connection_lost(const std::string& cause) {
 
 // General callback: Invoked when a message arrives on a subscribed topic.
 // This example is primarily a publisher, so this is usually empty or logs unexpected messages.
-void MqttPublisher::message_arrived(mqtt::const_message_ptr msg) {
+void MqttPublisher::message_arrived([[maybe_unused]] mqtt::const_message_ptr msg) {
     // Log if unexpected messages arrive.
     // std::cout << "MQTT Info: Unexpected message arrived on topic '" << msg->get_topic()
     //           << "': " << msg->to_string() << std::endl;
 }
 
 // General callback: Invoked when the delivery of a QoS 1 or QoS 2 message is confirmed.
-void MqttPublisher::delivery_complete(mqtt::delivery_token_ptr tok) {
+void MqttPublisher::delivery_complete([[maybe_unused]] mqtt::delivery_token_ptr tok) {
     // Optional: Log delivery confirmation for reliable messaging.
     // if (tok) {
     //     std::cout << "MQTT Info: Delivery complete for message token: "
