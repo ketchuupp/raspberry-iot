@@ -21,10 +21,10 @@ namespace SensorHub::Components { namespace BME280_STUB {
 namespace SensorHub::Components {
 
 // Inherit from the interface
-class StubI2C_Manager : public SensorHub::Interfaces::II2C_Bus {
+class I2C_Manager : public SensorHub::Interfaces::II2C_Bus {
 public:
-    explicit StubI2C_Manager(std::string bus_device_path); // Still take path for consistency
-    ~StubI2C_Manager() override = default;
+    explicit I2C_Manager(std::string bus_device_path); // Still take path for consistency
+    ~I2C_Manager() override = default;
 
     // Override interface methods with stub implementations
     bool writeByteData(uint8_t device_address, uint8_t reg, uint8_t value) override;
@@ -35,11 +35,11 @@ public:
     const std::string& getBusPath() const override;
 
     // Delete copy/assignment
-    StubI2C_Manager(const StubI2C_Manager&) = delete;
-    StubI2C_Manager& operator=(const StubI2C_Manager&) = delete;
+    I2C_Manager(const I2C_Manager&) = delete;
+    I2C_Manager& operator=(const I2C_Manager&) = delete;
     // Allow move semantics
-    StubI2C_Manager(StubI2C_Manager&&) noexcept = default;
-    StubI2C_Manager& operator=(StubI2C_Manager&&) noexcept = default;
+    I2C_Manager(I2C_Manager&&) noexcept = default;
+    I2C_Manager& operator=(I2C_Manager&&) noexcept = default;
 
 private:
     std::string bus_path_;

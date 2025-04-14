@@ -6,13 +6,13 @@
 
 namespace SensorHub::Components {
 
-StubI2C_Manager::StubI2C_Manager(std::string bus_device_path)
+I2C_Manager::I2C_Manager(std::string bus_device_path)
     : bus_path_(std::move(bus_device_path)) {
-    std::cout << "StubI2C_Manager: Initialized for bus path '" << bus_path_
+    std::cout << "I2C_Manager: Initialized for bus path '" << bus_path_
               << "' (No actual device opened)." << std::endl;
 }
 
-bool StubI2C_Manager::writeByteData(uint8_t device_address, uint8_t reg, uint8_t value) {
+bool I2C_Manager::writeByteData(uint8_t device_address, uint8_t reg, uint8_t value) {
     std::cout << "[Stub I2C]: Write Byte 0x" << std::hex << static_cast<int>(value)
               << " to Addr 0x" << static_cast<int>(device_address)
               << " Reg 0x" << static_cast<int>(reg) << std::dec << std::endl;
@@ -20,7 +20,7 @@ bool StubI2C_Manager::writeByteData(uint8_t device_address, uint8_t reg, uint8_t
     return true;
 }
 
-std::optional<uint8_t> StubI2C_Manager::readByteData(uint8_t device_address, uint8_t reg) {
+std::optional<uint8_t> I2C_Manager::readByteData(uint8_t device_address, uint8_t reg) {
     std::cout << "[Stub I2C]: Read Byte from Addr 0x" << std::hex << static_cast<int>(device_address)
               << " Reg 0x" << static_cast<int>(reg) << std::dec << std::endl;
 
@@ -37,7 +37,7 @@ std::optional<uint8_t> StubI2C_Manager::readByteData(uint8_t device_address, uin
     return 0xAB;
 }
 
-std::optional<std::vector<uint8_t>> StubI2C_Manager::readBlockData(uint8_t device_address, uint8_t start_reg, size_t count) {
+std::optional<std::vector<uint8_t>> I2C_Manager::readBlockData(uint8_t device_address, uint8_t start_reg, size_t count) {
     std::cout << "[Stub I2C]: Read Block (" << count << " bytes) from Addr 0x" << std::hex << static_cast<int>(device_address)
               << " Reg 0x" << static_cast<int>(start_reg) << std::dec << std::endl;
 
@@ -71,14 +71,14 @@ std::optional<std::vector<uint8_t>> StubI2C_Manager::readBlockData(uint8_t devic
     return default_dummy;
 }
 
-bool StubI2C_Manager::writeBlockData(uint8_t device_address, uint8_t start_reg, const std::vector<uint8_t>& data) {
+bool I2C_Manager::writeBlockData(uint8_t device_address, uint8_t start_reg, const std::vector<uint8_t>& data) {
      std::cout << "[Stub I2C]: Write Block (" << data.size() << " bytes) to Addr 0x" << std::hex << static_cast<int>(device_address)
               << " Reg 0x" << static_cast<int>(start_reg) << std::dec << std::endl;
      // Pretend success
      return true;
 }
 
-bool StubI2C_Manager::probeDevice(uint8_t device_address) {
+bool I2C_Manager::probeDevice(uint8_t device_address) {
      std::cout << "[Stub I2C]: Probe Addr 0x" << std::hex << static_cast<int>(device_address) << std::dec << std::endl;
      // Pretend the default BME280_STUB address exists for testing initialization
      if (device_address == BME280_STUB::DEFAULT_ADDRESS) {
@@ -89,7 +89,7 @@ bool StubI2C_Manager::probeDevice(uint8_t device_address) {
      return false; // Assume others don't exist
 }
 
-const std::string& StubI2C_Manager::getBusPath() const {
+const std::string& I2C_Manager::getBusPath() const {
      return bus_path_;
  }
 

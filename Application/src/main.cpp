@@ -16,18 +16,18 @@
 // Include JSON library (make sure FetchContent is set up in root CMakeLists.txt)
 #include <nlohmann/json.hpp>
 
-// Include concrete implementation headers based on platform define set by CMake
-#if defined(PLATFORM_LINUX)
+
+// --- Conditional Includes and Type Aliases based on CMake Definition ---
+#if defined(PLATFORM_LINUX_RPI) // Check for the RPi specific flag
     #include "LinuxI2C_Manager/linux_i2c_manager.h" // Include Linux implementation
-    using ConcreteI2CManager = SensorHub::Components::LinuxI2C_Manager;
-    const std::string PLATFORM_NAME = "Linux";
-#elif defined(PLATFORM_MACOS_STUB) || defined(PLATFORM_STUB) // Use Stub for macOS or generic fallback
+    const std::string PLATFORM_NAME = "Linux RPi"; // Updated platform name
+#elif defined(PLATFORM_STUB) // All other platforms use the stub
     #include "StubI2C_Manager/stub_i2c_manager.h"  // Include Stub implementation
-    using ConcreteI2CManager = SensorHub::Components::StubI2C_Manager;
-    const std::string PLATFORM_NAME = "Stub/macOS";
+    const std::string PLATFORM_NAME = "Stub Platform"; // Updated platform name
 #else
-    #error "Target platform not supported: No I2C Manager defined! Set PLATFORM_LINUX, PLATFORM_MACOS_STUB, or PLATFORM_STUB."
+    #error "Target platform definition not set correctly by CMake! Define PLATFORM_LINUX_RPI or PLATFORM_STUB."
 #endif
+// --- End Conditional Includes ---
 
 // Use nlohmann::json for convenience
 using json = nlohmann::json;
@@ -82,7 +82,7 @@ int main() {
     try {
         // 1. Initialize the appropriate I2C Manager based on the platform
         std::cout << "Initializing I2C Manager (" << PLATFORM_NAME << ")..." << std::endl;
-        i2c_manager = std::make_unique<ConcreteI2CManager>(I2C_BUS_PATH);
+        i2c_manager = std::make_unique<SensorHub::Components::I2C_Manager>(I2C_BUS_PATH);
 
         // 2. Probe for the sensor using the manager interface (optional but recommended)
         std::cout << "Probing for BME280 at address 0x" << std::hex << static_cast<int>(BME280_ADDRESS) << std::dec << "..." << std::endl;
@@ -150,7 +150,8 @@ int main() {
             payload_json["platform"] = PLATFORM_NAME; // Indicate build type
 
             std::string payload_str = payload_json.dump(); // Serialize JSON to string
-            std::cout << payload_json;
+            // std::cout << payload_json;
+            // std::string payload_str{};
 
             // Publish data via MQTT if connected
             if (mqtt_client->isConnected()) {

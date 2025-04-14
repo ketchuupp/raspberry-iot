@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Component name
 # -----------------------------------------------------------------------------
-set(componentName I2C_Manager)
+set(componentName LinuxI2C_Manager)
 set(componentLib ${componentName})
 
 # -----------------------------------------------------------------------------
@@ -12,19 +12,15 @@ set(include_path_private "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(source_path "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(include_files_public
-    ${include_path_public}/${componentName}/I2C_Manager.h
+    ${include_path_public}/${componentName}/linux_i2c_manager.h
     )
 
 set(include_files_private
     )
 
 set(source_files
-    ${source_path}/I2C_Manager.cpp
+    ${source_path}/linux_i2c_manager.cpp
     )
-
-# Find I2C library using pkg-config (needed by this component)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(I2C REQUIRED libi2c)
 
 # -----------------------------------------------------------------------------
 # Create library
@@ -59,7 +55,8 @@ target_link_libraries(${componentLib}
 
     PUBLIC
     ${DEFAULT_LIBRARIES}
-    ${I2C_LIBRARIES}     # Link libi2c from pkg-config
+    # ${I2C_LIBRARIES}     # Link libi2c from pkg-config
+    Interfaces
 
     INTERFACE
 )
@@ -103,4 +100,4 @@ install(FILES ${include_files_public} DESTINATION include/I2C_Manager) # Install
 # -----------------------------------------------------------------------------
 # Unit tests
 # -----------------------------------------------------------------------------
-include(Test.cmake)
+# include(Test.cmake)

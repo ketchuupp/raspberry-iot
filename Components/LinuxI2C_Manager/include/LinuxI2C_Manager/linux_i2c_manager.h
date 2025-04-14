@@ -10,10 +10,10 @@
 namespace SensorHub::Components {
 
 // Inherit from the interface
-class LinuxI2C_Manager : public SensorHub::Interfaces::II2C_Bus {
+class I2C_Manager : public SensorHub::Interfaces::II2C_Bus {
 public:
-    explicit LinuxI2C_Manager(std::string bus_device_path);
-    ~LinuxI2C_Manager() override; // Override virtual destructor
+    explicit I2C_Manager(std::string bus_device_path);
+    ~I2C_Manager() override; // Override virtual destructor
 
     // Override interface methods
     bool writeByteData(uint8_t device_address, uint8_t reg, uint8_t value) override;
@@ -25,11 +25,11 @@ public:
 
 
     // Delete copy/assignment
-    LinuxI2C_Manager(const LinuxI2C_Manager&) = delete;
-    LinuxI2C_Manager& operator=(const LinuxI2C_Manager&) = delete;
+    I2C_Manager(const I2C_Manager&) = delete;
+    I2C_Manager& operator=(const I2C_Manager&) = delete;
     // Allow move semantics
-    LinuxI2C_Manager(LinuxI2C_Manager&&) noexcept;
-    LinuxI2C_Manager& operator=(LinuxI2C_Manager&&) noexcept;
+    I2C_Manager(I2C_Manager&&) noexcept;
+    I2C_Manager& operator=(I2C_Manager&&) noexcept;
 
 private:
     bool setActiveDevice(uint8_t device_address); // Keep this helper

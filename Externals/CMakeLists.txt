@@ -4,6 +4,7 @@ include(FetchContent)
 find_package(Git QUIET) # Needed only if PATCH_COMMAND uses git apply
 
 # --- Google Test ---
+if(NOT BUILD_TARGET_RPI)
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
@@ -12,6 +13,7 @@ FetchContent_Declare(
 set(GTEST_INSTALL OFF CACHE BOOL "Do not install GTest")
 set(BUILD_GMOCK ON CACHE BOOL "Build GMock along with GTest")
 FetchContent_MakeAvailable(googletest)
+endif()
 
 # --- nlohmann/json ---
 FetchContent_Declare(

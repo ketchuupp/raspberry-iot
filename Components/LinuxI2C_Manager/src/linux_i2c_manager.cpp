@@ -14,31 +14,31 @@
 namespace SensorHub::Components {
 
 // --- Constructor / Destructor ---
-LinuxI2C_Manager::LinuxI2C_Manager(std::string bus_device_path)
+I2C_Manager::I2C_Manager(std::string bus_device_path)
     : bus_path_(std::move(bus_device_path)) {
     // Lock immediately during construction phase
     std::lock_guard<std::mutex> lock(bus_mutex_);
 
     fd_ = open(bus_path_.c_str(), O_RDWR);
     if (fd_ < 0) {
-        throw std::runtime_error("LinuxI2C_Manager: Failed to open bus " + bus_path_ + ": " + strerror(errno));
+        throw std::runtime_error("I2C_Manager: Failed to open bus " + bus_path_ + ": " + strerror(errno));
     }
-    std::cout << "LinuxI2C_Manager: Opened bus " << bus_path_ << std::endl;
+    std::cout << "I2C_Manager: Opened bus " << bus_path_ << std::endl;
 }
 
-LinuxI2C_Manager::~LinuxI2C_Manager() {
+I2C_Manager::~I2C_Manager() {
     // Lock before closing
     std::lock_guard<std::mutex> lock(bus_mutex_);
 
     if (fd_ >= 0) {
         close(fd_);
         fd_ = -1;
-        std::cout << "LinuxI2C_Manager: Closed bus " << bus_path_ << std::endl;
+        std::cout << "I2C_Manager: Closed bus " << bus_path_ << std::endl;
     }
 }
 
 // --- Move Semantics ---
-LinuxI2C_Manager::LinuxI2C_Manager(LinuxI2C_Manager&& other) noexcept
+I2C_Manager::I2C_Manager(I2C_Manager&& other) noexcept
     : bus_path_(std::move(other.bus_path_)),
       fd_(other.fd_),
       current_address_(other.current_address_)
@@ -48,7 +48,7 @@ LinuxI2C_Manager::LinuxI2C_Manager(LinuxI2C_Manager&& other) noexcept
     other.fd_ = -1;
 }
 
-LinuxI2C_Manager& LinuxI2C_Manager::operator=(LinuxI2C_Manager&& other) noexcept {
+I2C_Manager& I2C_Manager::operator=(I2C_Manager&& other) noexcept {
      if (this != &other) {
         // Lock both mutexes safely to prevent deadlock (using std::lock)
          std::lock(bus_mutex_, other.bus_mutex_);
@@ -73,10 +73,10 @@ LinuxI2C_Manager& LinuxI2C_Manager::operator=(LinuxI2C_Manager&& other) noexcept
 }
 
 // --- Private Helper ---
-bool LinuxI2C_Manager::setActiveDevice(uint8_t device_address) {
+bool I2C_Manager::setActiveDevice(uint8_t device_address) {
     // Assumes bus_mutex_ is already held by the calling public method
     if (fd_ < 0) {
-        std::cerr << "LinuxI2C_Manager Error: Bus not open." << std::endl;
+        std::cerr << "I2C_Manager Error: Bus not open." << std::endl;
         return false;
     }
     // Optimization: Avoid unnecessary ioctl if address hasn't changed
@@ -85,7 +85,7 @@ bool LinuxI2C_Manager::setActiveDevice(uint8_t device_address) {
     }
     // Set the I2C slave address for subsequent communication
     if (ioctl(fd_, I2C_SLAVE, device_address) < 0) {
-        std::cerr << "LinuxI2C_Manager Error: Failed to set slave address 0x"
+        std::cerr << "I2C_Manager Error: Failed to set slave address 0x"
                   << std::hex << static_cast<int>(device_address) << ": "
                   << strerror(errno) << std::dec << std::endl;
         current_address_ = 0; // Invalidate cache on error
@@ -97,7 +97,7 @@ bool LinuxI2C_Manager::setActiveDevice(uint8_t device_address) {
 
 // --- Public I2C Operations ---
 
-bool LinuxI2C_Manager::writeByteData(uint8_t device_address, uint8_t reg, uint8_t value) {
+bool I2C_Manager::writeByteData(uint8_t device_address, uint8_t reg, uint8_t value) {
     std::lock_guard<std::mutex> lock(bus_mutex_); // Lock the bus for this transaction
 
     if (!setActiveDevice(device_address)) {
@@ -108,7 +108,7 @@ bool LinuxI2C_Manager::writeByteData(uint8_t device_address, uint8_t reg, uint8_
     uint8_t buffer[2] = {reg, value};
     // Write the buffer (register address followed by data byte)
     if (write(fd_, buffer, 2) != 2) {
-        std::cerr << "LinuxI2C_Manager Error: Failed writeByteData to addr 0x"
+        std::cerr << "I2C_Manager Error: Failed writeByteData to addr 0x"
                   << std::hex << static_cast<int>(device_address) << " reg 0x" << static_cast<int>(reg)
                   << ": " << strerror(errno) << std::dec << std::endl;
         return false;
@@ -116,7 +116,7 @@ bool LinuxI2C_Manager::writeByteData(uint8_t device_address, uint8_t reg, uint8_
     return true;
 }
 
-std::optional<uint8_t> LinuxI2C_Manager::readByteData(uint8_t device_address, uint8_t reg) {
+std::optional<uint8_t> I2C_Manager::readByteData(uint8_t device_address, uint8_t reg) {
     std::lock_guard<std::mutex> lock(bus_mutex_); // Lock the bus
 
     if (!setActiveDevice(device_address)) {
@@ -125,7 +125,7 @@ std::optional<uint8_t> LinuxI2C_Manager::readByteData(uint8_t device_address, ui
 
     // Write the register address we want to read from
     if (write(fd_, &reg, 1) != 1) {
-         std::cerr << "LinuxI2C_Manager Error: Failed write reg address 0x" << std::hex << static_cast<int>(reg)
+         std::cerr << "I2C_Manager Error: Failed write reg address 0x" << std::hex << static_cast<int>(reg)
                    << " for readByteData from addr 0x" << static_cast<int>(device_address)
                    << ": " << strerror(errno) << std::dec << std::endl;
         return std::nullopt;
@@ -134,14 +134,14 @@ std::optional<uint8_t> LinuxI2C_Manager::readByteData(uint8_t device_address, ui
     // Read the data byte back
     uint8_t value = 0;
     if (read(fd_, &value, 1) != 1) {
-         std::cerr << "LinuxI2C_Manager Error: Failed readByteData from addr 0x" << std::hex << static_cast<int>(device_address)
+         std::cerr << "I2C_Manager Error: Failed readByteData from addr 0x" << std::hex << static_cast<int>(device_address)
                    << " reg 0x" << static_cast<int>(reg) << ": " << strerror(errno) << std::dec << std::endl;
         return std::nullopt;
     }
     return value;
 }
 
-std::optional<std::vector<uint8_t>> LinuxI2C_Manager::readBlockData(uint8_t device_address, uint8_t start_reg, size_t count) {
+std::optional<std::vector<uint8_t>> I2C_Manager::readBlockData(uint8_t device_address, uint8_t start_reg, size_t count) {
      std::lock_guard<std::mutex> lock(bus_mutex_); // Lock the bus
 
      if (count == 0) return std::vector<uint8_t>(); // Return empty vector if count is 0
@@ -151,7 +151,7 @@ std::optional<std::vector<uint8_t>> LinuxI2C_Manager::readBlockData(uint8_t devi
 
      // Write the starting register address
      if (write(fd_, &start_reg, 1) != 1) {
-         std::cerr << "LinuxI2C_Manager Error: Failed write start reg 0x" << std::hex << static_cast<int>(start_reg)
+         std::cerr << "I2C_Manager Error: Failed write start reg 0x" << std::hex << static_cast<int>(start_reg)
                    << " for readBlockData from addr 0x" << static_cast<int>(device_address)
                    << ": " << strerror(errno) << std::dec << std::endl;
          return std::nullopt;
@@ -163,14 +163,14 @@ std::optional<std::vector<uint8_t>> LinuxI2C_Manager::readBlockData(uint8_t devi
 
      // Check for read errors
      if (bytes_read < 0) {
-        std::cerr << "LinuxI2C_Manager Error: Failed readBlockData (" << count << " bytes) from addr 0x"
+        std::cerr << "I2C_Manager Error: Failed readBlockData (" << count << " bytes) from addr 0x"
                   << std::hex << static_cast<int>(device_address) << " reg 0x" << static_cast<int>(start_reg)
                   << ": " << strerror(errno) << std::dec << std::endl;
         return std::nullopt;
      }
      // Check for partial reads (might happen, sometimes okay, sometimes an error)
      if (static_cast<size_t>(bytes_read) != count) {
-         std::cerr << "LinuxI2C_Manager Warning: Read only " << bytes_read << " of " << count
+         std::cerr << "I2C_Manager Warning: Read only " << bytes_read << " of " << count
                    << " bytes from addr 0x" << std::hex << static_cast<int>(device_address)
                    << " reg 0x" << static_cast<int>(start_reg) << std::dec << std::endl;
          buffer.resize(bytes_read); // Adjust vector size to actual bytes read
@@ -179,7 +179,7 @@ std::optional<std::vector<uint8_t>> LinuxI2C_Manager::readBlockData(uint8_t devi
      return buffer; // Return the (potentially resized) vector
 }
 
- bool LinuxI2C_Manager::writeBlockData(uint8_t device_address, uint8_t start_reg, const std::vector<uint8_t>& data) {
+ bool I2C_Manager::writeBlockData(uint8_t device_address, uint8_t start_reg, const std::vector<uint8_t>& data) {
      std::lock_guard<std::mutex> lock(bus_mutex_); // Lock the bus
 
      if (data.empty()) return true; // Nothing to write
@@ -197,7 +197,7 @@ std::optional<std::vector<uint8_t>> LinuxI2C_Manager::readBlockData(uint8_t devi
      ssize_t bytes_to_write = static_cast<ssize_t>(buffer.size());
      // Write the entire buffer in one go
      if (write(fd_, buffer.data(), bytes_to_write) != bytes_to_write) {
-          std::cerr << "LinuxI2C_Manager Error: Failed writeBlockData (" << data.size() << " bytes) to addr 0x"
+          std::cerr << "I2C_Manager Error: Failed writeBlockData (" << data.size() << " bytes) to addr 0x"
                     << std::hex << static_cast<int>(device_address) << " reg 0x" << static_cast<int>(start_reg)
                     << ": " << strerror(errno) << std::dec << std::endl;
           return false;
@@ -205,11 +205,11 @@ std::optional<std::vector<uint8_t>> LinuxI2C_Manager::readBlockData(uint8_t devi
      return true;
  }
 
- bool LinuxI2C_Manager::probeDevice(uint8_t device_address) {
+ bool I2C_Manager::probeDevice(uint8_t device_address) {
      std::lock_guard<std::mutex> lock(bus_mutex_); // Lock the bus
 
      if (fd_ < 0) {
-         std::cerr << "LinuxI2C_Manager Error: Bus not open for probe." << std::endl;
+         std::cerr << "I2C_Manager Error: Bus not open for probe." << std::endl;
          return false;
      }
 
@@ -226,7 +226,7 @@ std::optional<std::vector<uint8_t>> LinuxI2C_Manager::readBlockData(uint8_t devi
              return false; // No device acknowledged
          } else {
              // Other unexpected error during ioctl
-             std::cerr << "LinuxI2C_Manager Error: Failed probe ioctl for addr 0x"
+             std::cerr << "I2C_Manager Error: Failed probe ioctl for addr 0x"
                        << std::hex << static_cast<int>(device_address) << ": "
                        << strerror(errno) << std::dec << std::endl;
              current_address_ = 0; // Invalidate address cache on error
@@ -239,7 +239,7 @@ std::optional<std::vector<uint8_t>> LinuxI2C_Manager::readBlockData(uint8_t devi
      return true; // Device acknowledged
  }
 
- const std::string& LinuxI2C_Manager::getBusPath() const {
+ const std::string& I2C_Manager::getBusPath() const {
      return bus_path_;
  }
 

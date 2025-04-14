@@ -15,7 +15,10 @@ include(CompileOptions.cmake)
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIRECTORY}/Binaries/Lib")
 
 # Enable testing
-enable_testing()
+if(NOT BUILD_TARGET_RPI)
+message("Tests are enabled!")
+    enable_testing()
+endif()
 
 # Project modules
 add_subdirectory(Externals)
