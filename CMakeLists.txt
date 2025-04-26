@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.14)
 project(MyProject VERSION 1.0)
 
 # Set the application name as a CMake variable
-set(APPLICATION_NAME "MyApp")
+set(APPLICATION_NAME "Sensor_tester")
 
 # Compile settings and options
 include(CompileOptions.cmake)
@@ -13,12 +13,6 @@ include(CompileOptions.cmake)
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIRECTORY}/Binaries/Bin")
 # set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIRECTORY}/Binaries/Lib")
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIRECTORY}/Binaries/Lib")
-
-# Enable testing
-if(NOT BUILD_TARGET_RPI)
-message("Tests are enabled!")
-    enable_testing()
-endif()
 
 # Project modules
 add_subdirectory(Externals)

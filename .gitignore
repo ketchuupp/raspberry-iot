@@ -1,4 +1,4 @@
 build/**
 build_rpi/**
-dump_project.py/**
+dump_project.py
 .DS_Store

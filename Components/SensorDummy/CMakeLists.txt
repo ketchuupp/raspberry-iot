@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Component name
 # -----------------------------------------------------------------------------
-set(componentName StubI2C_Manager)
+set(componentName SensorDummy)
 set(componentLib ${componentName})
 
 # -----------------------------------------------------------------------------
@@ -12,14 +12,15 @@ set(include_path_private "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(source_path "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(include_files_public
-    ${include_path_public}/${componentName}/stub_i2c_manager.h
+    ${include_path_public}/${componentName}/sensor_dummy.h
     )
 
 set(include_files_private
+    # ${include_path_private}/dummy.h
     )
 
 set(source_files
-    ${source_path}/stub_i2c_manager.cpp
+    ${source_path}/sensor_dummy.cpp
     )
 
 # -----------------------------------------------------------------------------
@@ -37,13 +38,10 @@ add_library(${componentLib}
 target_include_directories(${componentLib} 
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    # Need to include BME280 defs for the cpp file
-    ${CMAKE_SOURCE_DIR}/Components/SensorBME280/include
 
     PUBLIC
     ${DEFAULT_INCLUDE_DIRECTORIES}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    ${I2C_INCLUDE_DIRS}
     $<INSTALL_INTERFACE:Include>
 
     INTERFACE
@@ -57,12 +55,11 @@ target_link_libraries(${componentLib}
 
     PUBLIC
     ${DEFAULT_LIBRARIES}
-    ${I2C_LIBRARIES}     # Link libi2c from pkg-config
     Interfaces
+    nlohmann_json::nlohmann_json
 
 
     INTERFACE
-
 )
 
 # -----------------------------------------------------------------------------
@@ -99,8 +96,7 @@ install(TARGETS ${componentLib}
     RUNTIME DESTINATION bin
     )
 
-install(FILES ${include_files_public} DESTINATION include/I2C_Manager) # Install header correctly
-install(FILES ${include_files_public} DESTINATION include/StubI2C_Manager)
+install(DIRECTORY include/ DESTINATION include)
 
 # -----------------------------------------------------------------------------
 # Unit tests

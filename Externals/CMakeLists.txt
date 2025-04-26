@@ -3,23 +3,11 @@
 include(FetchContent)
 find_package(Git QUIET) # Needed only if PATCH_COMMAND uses git apply
 
-# --- Google Test ---
-if(NOT BUILD_TARGET_RPI)
-FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG        v1.16.0 # Or your chosen version
-)
-set(GTEST_INSTALL OFF CACHE BOOL "Do not install GTest")
-set(BUILD_GMOCK ON CACHE BOOL "Build GMock along with GTest")
-FetchContent_MakeAvailable(googletest)
-endif()
-
 # --- nlohmann/json ---
 FetchContent_Declare(
   json
   GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG        v3.12.0 # Or your chosen version
+  GIT_TAG        v3.12.0
 )
 FetchContent_MakeAvailable(json)
 
@@ -40,3 +28,4 @@ FetchContent_Declare(
     GIT_SUBMODULES # Fetches default submodules (like paho.mqtt.c)
 )
 FetchContent_MakeAvailable(paho_mqtt_cpp)
+

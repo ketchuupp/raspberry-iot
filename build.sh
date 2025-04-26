@@ -12,7 +12,7 @@ echo "*** Script execution time: $(date) ***" # Added timestamp for context
 
 # --- Configuration ---
 PROJECT_ROOT="." # Project root is the current directory
-RPI_BUILD_DIR="$PROJECT_ROOT/build/rpi_build"
+RPI_BUILD_DIR="$PROJECT_ROOT/build"
 TOOLCHAIN_FILE_REL_PATH="cmake/toolchains/rpi_docker_toolchain.cmake" # Relative to project root
 DOCKER_IMAGE_NAME="myapp-rpi-builder" # Match the name used in 'docker build'
 

@@ -1,7 +1,8 @@
 # -----------------------------------------------------------------------------
-# Component name (Application)
+# Component name
 # -----------------------------------------------------------------------------
-set(applicationName ${APPLICATION_NAME})
+set(componentName SensorBuilder)
+set(componentLib ${componentName})
 
 # -----------------------------------------------------------------------------
 # Sources
@@ -11,65 +12,96 @@ set(include_path_private "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(source_path "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(include_files_public
-    ${include_path_public}/App/app.h
+    ${include_path_public}/${componentName}/sensor_builder.h
+    )
+
+set(include_files_private
     )
 
 set(source_files
-    ${source_path}/app.cpp
-    ${source_path}/main.cpp
+    ${source_path}/sensor_builder.cpp
     )
 
 # -----------------------------------------------------------------------------
-# Create application executable
+# Create library
 # -----------------------------------------------------------------------------
-add_executable(${applicationName}
+add_library(${componentLib}
+    ${include_files_public}
+    ${include_files_private}
     ${source_files}
+    )
+
+# -----------------------------------------------------------------------------
+# Include direcories
+# -----------------------------------------------------------------------------
+target_include_directories(${componentLib} 
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+
+    PUBLIC
+    ${DEFAULT_INCLUDE_DIRECTORIES}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:Include>
+
+    INTERFACE
 )
 
 # -----------------------------------------------------------------------------
-# Include directories (Private for the application build)
+# Dependencies to other libraries
 # -----------------------------------------------------------------------------
-target_include_directories(${applicationName} 
+target_link_libraries(${componentLib}
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-# -----------------------------------------------------------------------------
-# Dependencies to other libraries (Link Components and Platform I2C Impl)
-# -----------------------------------------------------------------------------
-target_link_libraries(${applicationName} 
-    PRIVATE
-    ${DEFAULT_LIBRARIES}
-
     SensorBME280
-    NetworkMQTT
-    SensorBuilder
-    nlohmann_json::nlohmann_json
+    SensorDummy
+    SensorLPS25HB
     LinuxI2C_Manager
-    # Add other component library targets here
+
+    PUBLIC
+    ${DEFAULT_LIBRARIES}
+    Interfaces
+    nlohmann_json::nlohmann_json
+
+
+    INTERFACE
 )
 
 # -----------------------------------------------------------------------------
-# Compile definitions (Inherited + App Specific)
+# Compile definitions
 # -----------------------------------------------------------------------------
-target_compile_definitions(${applicationName}
+target_compile_definitions(${componentLib}
     PRIVATE
-
+    
     PUBLIC
     ${DEFAULT_COMPILE_DEFINITIONS}
 
     INTERFACE
-
     )
 
 # -----------------------------------------------------------------------------
-# Compile options (Inherited + App Specific)
+# Compile options
 # -----------------------------------------------------------------------------
-target_compile_options(${applicationName}
+target_compile_options(${componentLib}
     PRIVATE
 
     PUBLIC
     ${DEFAULT_COMPILE_OPTIONS}
 
     INTERFACE
+)
+
+# -----------------------------------------------------------------------------
+# Deployment
+# -----------------------------------------------------------------------------
+
+install(TARGETS ${componentLib}
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
     )
+
+install(DIRECTORY include/ DESTINATION include)
+
+# -----------------------------------------------------------------------------
+# Unit tests
+# -----------------------------------------------------------------------------
+# include(Test.cmake)

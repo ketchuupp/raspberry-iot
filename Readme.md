@@ -2,129 +2,90 @@
 
 ## Overview
 
-This project implements a C++ application designed to run on a Raspberry Pi (or natively on macOS using a stub for testing). It reads data from a BME280 sensor (temperature, humidity, pressure) via I2C and publishes this data to an MQTT broker.
+This project implements a C++ application designed to run on a Raspberry Pi. It reads data from configured sensors (e.g., BME280 via I2C, Dummy sensor) based on a `config.json` file and publishes this data to an MQTT broker.
 
-The project utilizes modern C++ (C++23), CMake for building, and supports cross-compilation for Raspberry Pi (ARM Linux) from a macOS host using Docker. Dependencies like Paho MQTT, GoogleTest, and nlohmann/json are managed via CMake's FetchContent.
+The project utilizes modern C++ (C++23), CMake for building, and supports cross-compilation for Raspberry Pi (ARM Linux) from a macOS/Linux host using Docker. Dependencies like Paho MQTT and nlohmann/json are managed via CMake's FetchContent. The main application logic is encapsulated within the `App` class.
 
 An accompanying HTML/JavaScript dashboard (`dashboard.html` - *Note: You need to save this separately*) can subscribe to the MQTT broker to display the sensor data in real-time.
 
 ## Features
 
-* Reads Temperature, Humidity, and Pressure from BME280 sensor.
-* Publishes data to a configurable MQTT topic in JSON format.
-* Abstracted I2C interface with implementations for:
-    * Linux (`ioctl`-based) for Raspberry Pi.
-    * Stub (for testing/running on non-Linux hosts like macOS).
+* Reads data from multiple sensor types based on `config.json`.
+* Currently supports:
+    * BME280 (Temperature, Humidity, Pressure) via I2C.
+    * Dummy (Generates example data, useful as a template/test).
+* Publishes data to configurable MQTT topics in JSON format.
+* Abstracted sensor interface (`ISensor`).
+* Sensor instantiation handled by `SensorBuilder`.
+* Abstracted I2C interface (`II2C_Bus`) with implementation for Linux (`ioctl`).
 * Cross-compilation support for Raspberry Pi (arm-linux-gnueabihf) using Docker.
-* Native macOS build support (uses I2C Stub).
 * Dependencies managed via CMake FetchContent.
-* Unit testing framework (GoogleTest) configured for native builds.
-* Simple build scripts for different targets.
+* Simple build script (`build_rpi.sh`) for the target application.
 
 ## Prerequisites
 
-* **Common:**
+* **Development Host (e.g., macOS, Linux):**
     * CMake (version 3.14 or higher)
     * Git
-    * A C++23 compliant compiler (GCC 14+ or recent Clang/AppleClang recommended)
-    * Ninja build system (optional, but used by the build scripts): `brew install ninja` on macOS.
-* **For Raspberry Pi Cross-Compilation (using Docker):**
     * Docker Desktop (or Docker Engine on Linux) installed and running.
+    * Ninja build system (optional, but used by build script): `brew install ninja` on macOS, `sudo apt install ninja-build` on Debian/Ubuntu.
 * **For Running the Application:**
-    * An MQTT Broker (like Mosquitto) accessible by the application and dashboard.
-        * Must be configured to listen on TCP (default 1883) for the C++ app.
-        * Must be configured to listen on WebSockets (e.g., 9001) for the HTML dashboard.
-        * Install on macOS: `brew install mosquitto` (See [Setup Guide](#setup-guide) below).
+    * An MQTT Broker (like Mosquitto) accessible by the application.
+        * Must be configured to listen on TCP (default 1883).
+        * Install on RPi: `sudo apt install mosquitto mosquitto-clients`
+        * Install on macOS: `brew install mosquitto`
+    * (Optional) HTML Dashboard requires broker configured for WebSockets.
 * **Hardware (for RPi target):**
-    * Raspberry Pi
-    * BME280 Sensor connected via I2C.
+    * Raspberry Pi running Raspberry Pi OS (or compatible Linux).
+    * Configured sensors connected to the appropriate pins (e.g., BME280 via I2C).
 
-## Setup
+## Setup on Raspberry Pi (Hardware Interfaces)
 
-1.  **Clone the Repository:**
+Before running the application on the Raspberry Pi, you **must** enable the necessary hardware interfaces for the sensors you configure in `config.json`:
+
+1.  **Enable I2C (for BME280):**
+    * Run `sudo raspi-config`.
+    * Navigate to `Interface Options` -> `I2C`.
+    * Select `<Yes>` to enable.
+    * Finish and **Reboot**.
+    * Verify your user is in the `i2c` group (`groups $(whoami)`). If not, add with `sudo usermod -aG i2c $USER` and log out/in.
+
+
+## Building the Application (for RPi via Docker)
+
+Use the provided script from the project root directory on your development machine (e.g., macOS):
+
+1.  **Build the Docker image** (only needs to be done once or if `Dockerfile` changes):
     ```bash
-    git clone https://github.com/ketchuupp/raspberry-iot
-    cd raspberry-iot
+    docker build -t myapp-rpi-builder .
     ```
-2.  **Dependencies:** External libraries (Paho MQTT C/C++, GoogleTest, nlohmann/json) are automatically downloaded and built by CMake using FetchContent during the configuration step. No manual installation is needed.
-
-## Building the Application
-
-Use the provided scripts from the project root directory:
-
-* **For Raspberry Pi (Cross-Compile using Docker):**
-    1.  Build the Docker image (only needs to be done once or if `Dockerfile` changes):
-        ```bash
-        docker build -t myapp-rpi-builder .
-        ```
-    2.  Run the build script:
-        ```bash
-        ./build_rpi.sh
-        ```
-    3.  Output: The ARM Linux executable will be located in `build/rpi_build/Application/myApp`.
-
-* **For Native macOS (Uses I2C Stub):**
-    1.  Run the build script:
-        ```bash
-        ./build_macos.sh
-        ```
-    2.  Output: The native macOS executable will be located in `build/macos_build/Application/myApp`.
-
-## Running
-
-1.  **Setup MQTT Broker:**
-    * Install Mosquitto (if not already done): `brew install mosquitto`
-    * Configure it for TCP (1883) and WebSockets (e.g., 9001). Edit `/opt/homebrew/etc/mosquitto/mosquitto.conf` (or add a file in `conf.d/`) with:
-        ```conf
-        listener 1883
-        protocol mqtt
-
-        listener 9001
-        protocol websockets
-
-        allow_anonymous true # For easy testing
-        ```
-    * Start/Restart the broker: `brew services restart mosquitto`
-    * Verify it's running: `brew services list`
-
-2.  **Run the C++ Application:**
-    * **On macOS:** Open a terminal, navigate to the project root, and run:
-        ```bash
-        ./build/macos_build/Application/myApp
-        ```
-        *(This will use the Stub I2C Manager and publish dummy data)*
-    * **On Raspberry Pi:**
-        * Copy the cross-compiled executable (`build/rpi_build/Application/myApp`) from your Mac to the Raspberry Pi (e.g., using `scp`).
-        * On the Raspberry Pi terminal, navigate to where you copied the file and run it:
-            ```bash
-            ./myApp
-            ```
-            *(Ensure the MQTT broker is accessible from the RPi - e.g., use the Mac's IP address instead of `localhost` in `main.cpp` if running the broker on the Mac, or run the broker on the RPi itself)*.
-
-3.  **Run the HTML Dashboard:**
-    * Save the HTML code (provided previously) as `dashboard.html`.
-    * Ensure the `brokerUrl` inside the dashboard's JavaScript points to your broker's WebSocket listener (e.g., `ws://localhost:9001` if running the broker and browser on the same Mac).
-    * Open the `dashboard.html` file in your web browser.
-
-## Running Unit Tests (macOS Only)
-
-Unit tests are configured only for the native macOS build.
-
-1.  Run the test script from the project root:
+2.  **Run the build script:**
     ```bash
-    ./run_tests.sh
+    ./build_rpi.sh
     ```
-    This will configure, build (if needed), and run CTest, reporting results.
+3.  **Output:** The ARM Linux executable will be located in `build/rpi_build/Application/Sensor_tester`.
 
-## Configuration
+## Running on Raspberry Pi
 
-Currently, several parameters are hardcoded in `Application/src/main.cpp`:
+1.  **Copy Files:**
+    * Copy the compiled executable (`build/rpi_build/Application/Sensor_tester`) from your development machine to the Raspberry Pi (e.g., using `scp`).
+    * Copy the `config.json` file to the same directory on the Raspberry Pi where you place the executable. Ensure `config.json` contains the desired sensor configurations.
+2.  **Ensure Permissions:** On the RPi, make the executable runnable: `chmod +x ./Sensor_tester`
+3.  **Run:** Execute the application: `./Sensor_tester` (or `./Sensor_tester path/to/config.json` if it's elsewhere).
+    *(Ensure the MQTT broker is running and accessible from the RPi. Update the broker address in `config.json` if necessary).*
 
-* `I2C_BUS_PATH`: Path for the Linux I2C device.
-* `BME280_ADDRESS`: I2C address of the sensor.
-* `MQTT_BROKER_ADDRESS`: Address (including `tcp://` prefix) and port of the MQTT broker.
-* `MQTT_CLIENT_ID`: Base client ID for MQTT connection.
-* `MQTT_TOPIC_BME280`: Topic used for publishing data.
-* `PUBLISH_INTERVAL`: Frequency of data publishing.
+## Configuration (`config.json`)
 
-Future improvements could involve reading these from a configuration file or environment variables.
+The application loads settings from `config.json`. See the example file for structure. Key fields:
+
+* `mqtt`: Contains `broker_address` (e.g., "tcp://192.168.1.10:1883"), `client_id_base`, `topic_base`.
+* `global_publish_interval_sec`: Optional integer interval (default 10s) used if sensor-specific interval isn't set.
+* `sensors`: An array of sensor objects. Each object needs:
+    * `type`: String identifier (e.g., "BME280", "Dummy"). Must match the type handled in `SensorBuilder`.
+    * `enabled`: `true` or `false`.
+    * `publish_topic_suffix`: String appended to `mqtt.topic_base`.
+    * `publish_interval_sec`: Optional integer interval for this specific sensor.
+    * Type-specific fields (e.g., `i2c_bus`, `i2c_address` for BME280).
+
+
+

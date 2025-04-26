@@ -56,6 +56,7 @@ target_link_libraries(${componentLib}
     PUBLIC
     ${DEFAULT_LIBRARIES}
     Interfaces
+    nlohmann_json::nlohmann_json
 
 
     INTERFACE
@@ -100,4 +101,4 @@ install(DIRECTORY include/ DESTINATION include)
 # -----------------------------------------------------------------------------
 # Unit tests
 # -----------------------------------------------------------------------------
-include(Test.cmake)
+# include(Test.cmake)

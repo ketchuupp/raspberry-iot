@@ -1,27 +1,47 @@
+# -----------------------------------------------------------------------------
+# Component name
+# -----------------------------------------------------------------------------
+set(componentName SensorLPS25HB)
+set(componentLib ${componentName})
 
 # -----------------------------------------------------------------------------
-# Test application name
+# Sources
 # -----------------------------------------------------------------------------
-set(IOTest Test-${componentName})
+set(include_path_public "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(include_path_private "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(source_path "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+set(include_files_public
+    ${include_path_public}/${componentName}/sensor_lps25hb.h
+    )
+
+set(include_files_private
+    )
+
+set(source_files
+    ${source_path}/sensor_lps25hb.cpp
+    )
 
 # -----------------------------------------------------------------------------
-# Create test executable
+# Create library
 # -----------------------------------------------------------------------------
-add_executable(${IOTest}
-    Test/Test.cpp
-    Test/Test-I2C_Manager.cpp)
-    
-# -----------------------------------------------------------------------------
-# Include directories
-# -----------------------------------------------------------------------------
-target_include_directories(${IOTest} 
-    # SYSTEM
-    PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+add_library(${componentLib}
+    ${include_files_public}
     ${include_files_private}
+    ${source_files}
+    )
+
+# -----------------------------------------------------------------------------
+# Include direcories
+# -----------------------------------------------------------------------------
+target_include_directories(${componentLib} 
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 
     PUBLIC
     ${DEFAULT_INCLUDE_DIRECTORIES}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:Include>
 
     INTERFACE
 )
@@ -29,14 +49,13 @@ target_include_directories(${IOTest}
 # -----------------------------------------------------------------------------
 # Dependencies to other libraries
 # -----------------------------------------------------------------------------
-target_link_libraries(${IOTest}
+target_link_libraries(${componentLib}
     PRIVATE
 
     PUBLIC
-    ${componentLib}
-    gtest
-    gmock
     ${DEFAULT_LIBRARIES}
+    Interfaces
+    nlohmann_json::nlohmann_json
 
 
     INTERFACE
@@ -45,7 +64,7 @@ target_link_libraries(${IOTest}
 # -----------------------------------------------------------------------------
 # Compile definitions
 # -----------------------------------------------------------------------------
-target_compile_definitions(${IOTest}
+target_compile_definitions(${componentLib}
     PRIVATE
     
     PUBLIC
@@ -57,9 +76,8 @@ target_compile_definitions(${IOTest}
 # -----------------------------------------------------------------------------
 # Compile options
 # -----------------------------------------------------------------------------
-target_compile_options(${IOTest}
+target_compile_options(${componentLib}
     PRIVATE
-    -O0
 
     PUBLIC
     ${DEFAULT_COMPILE_OPTIONS}
@@ -68,7 +86,18 @@ target_compile_options(${IOTest}
 )
 
 # -----------------------------------------------------------------------------
-# Add test
+# Deployment
 # -----------------------------------------------------------------------------
-# add_test(NAME ${IOTest} COMMAND $<TARGET_FILE:${IOTest}>)
-add_test(NAME ${IOTest} COMMAND ${IOTest})
+
+install(TARGETS ${componentLib}
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+    )
+
+install(DIRECTORY include/ DESTINATION include)
+
+# -----------------------------------------------------------------------------
+# Unit tests
+# -----------------------------------------------------------------------------
+# include(Test.cmake)

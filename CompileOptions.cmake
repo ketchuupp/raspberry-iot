@@ -20,8 +20,8 @@ set(GCC_COMMON_FLAGS
     -Wshadow
     -Wnon-virtual-dtor
     -Wold-style-cast
-    -Wduplicated-cond # <<< GCC specific
-    -Wlogical-op      # <<< GCC specific
+    -Wduplicated-cond
+    -Wlogical-op
     -fstack-protector-strong
     -fno-omit-frame-pointer
     -fPIC
@@ -39,8 +39,8 @@ set(CLANG_COMMON_FLAGS
     -Wshadow
     -Wnon-virtual-dtor
     -Wold-style-cast
-    # -Wduplicated-cond # <<< REMOVED (Not standard Clang)
-    # -Wlogical-op      # <<< REMOVED (Not standard Clang)
+    # -Wduplicated-cond
+    # -Wlogical-op
     -fstack-protector-strong
     -fno-omit-frame-pointer
     -fPIC
@@ -54,27 +54,41 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "" FORCE)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3" CACHE STRING "" FORCE)
 
 # --- Default propagation variables ---
+
+# Set DEFAULT_COMPILE_OPTIONS based on the HOST compiler (for tests)
 set(DEFAULT_COMPILE_OPTIONS "") # Initialize empty LIST
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    message(STATUS "Compiler is GCC - Setting DEFAULT_COMPILE_OPTIONS to GCC flags list")
-    set(DEFAULT_COMPILE_OPTIONS ${GCC_COMMON_FLAGS}) # Assign the LIST
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang") # Catches Clang and AppleClang
-    message(STATUS "Compiler is Clang/AppleClang - Setting DEFAULT_COMPILE_OPTIONS to Clang flags list")
-    set(DEFAULT_COMPILE_OPTIONS ${CLANG_COMMON_FLAGS}) # Assign the LIST
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    message(STATUS "[Host Build] Compiler is GCC - Setting DEFAULT_COMPILE_OPTIONS to GCC flags list")
+    set(DEFAULT_COMPILE_OPTIONS ${GCC_COMMON_FLAGS})
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    message(STATUS "[Host Build] Compiler is Clang/AppleClang - Setting DEFAULT_COMPILE_OPTIONS to Clang flags list")
+    set(DEFAULT_COMPILE_OPTIONS ${CLANG_COMMON_FLAGS})
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU") # Fallback GCC on other hosts
+     message(STATUS "[Host Build] Compiler is GCC (non-Linux) - Setting DEFAULT_COMPILE_OPTIONS to GCC flags list")
+     set(DEFAULT_COMPILE_OPTIONS ${GCC_COMMON_FLAGS})
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang") # Fallback Clang on other hosts
+     message(STATUS "[Host Build] Compiler is Clang (non-macOS) - Setting DEFAULT_COMPILE_OPTIONS to Clang flags list")
+     set(DEFAULT_COMPILE_OPTIONS ${CLANG_COMMON_FLAGS})
 else()
-    message(WARNING "Compiler ID ${CMAKE_CXX_COMPILER_ID} not recognized - DEFAULT_COMPILE_OPTIONS left empty.")
+    message(WARNING "[Host Build] Host Compiler ID ${CMAKE_CXX_COMPILER_ID} not recognized - DEFAULT_COMPILE_OPTIONS left empty.")
 endif()
 
 # Other default variables
 set(DEFAULT_INCLUDE_DIRECTORIES "")
 set(DEFAULT_LIBRARIES "")
-set(DEFAULT_COMPILE_DEFINITIONS "")
-# DEFAULT_COMPILE_OPTIONS is set above
+set(DEFAULT_COMPILE_DEFINITIONS "") # Initialize empty list
 set(DEFAULT_LINKER_OPTIONS "")
 
+
 # --- Final Output Message ---
-# (message block remains the same)
 message("-----------------------------------------------------------")
-# ...
-message(" DEFAULT_COMPILE_OPTIONS = ${DEFAULT_COMPILE_OPTIONS}")
+message("CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
+message(" Host C Compiler ID = ${CMAKE_C_COMPILER_ID}") # Renamed for clarity
+message(" Host C++ Compiler ID = ${CMAKE_CXX_COMPILER_ID}") # Renamed for clarity
+message(" C Debug     = ${CMAKE_C_FLAGS_DEBUG}")
+message(" C Release   = ${CMAKE_C_FLAGS_RELEASE}")
+message(" C++ Debug   = ${CMAKE_CXX_FLAGS_DEBUG}")
+message(" C++ Release = ${CMAKE_CXX_FLAGS_RELEASE}")
+message(" DEFAULT_COMPILE_OPTIONS = ${DEFAULT_COMPILE_OPTIONS}") # For host tests
+message(" DEFAULT_COMPILE_DEFINITIONS = ${DEFAULT_COMPILE_DEFINITIONS}")
 message("-----------------------------------------------------------")

@@ -1,0 +1,39 @@
+{
+  "mqtt": {
+    "broker_address": "tcp://192.168.0.17:1883",
+    "client_id_base": "rpi_sensor_hub",
+    "topic_base": "rpisensor/data"
+  },
+  "sensors": [
+    {
+      "type": "BME280",
+      "enabled": true,
+      "i2c_bus": "/dev/i2c-1",
+      "i2c_address": "0x76",
+      "publish_topic_suffix": "bme280",
+      "publish_interval_sec": 10
+    },
+    {
+      "type": "BME280",
+      "enabled": true,
+      "i2c_bus": "/dev/i2c-1",
+      "i2c_address": "0x77",
+      "publish_topic_suffix": "bme280_v2",
+      "publish_interval_sec": 10
+    },
+    {
+      "type": "Dummy",
+      "enabled": true,
+      "publish_topic_suffix": "dummy_test",
+      "publish_interval_sec": 5
+    },
+    {
+      "type": "LPS25HB",
+      "enabled": true,
+      "i2c_bus": "/dev/i2c-1",
+      "i2c_address": "0x5d",
+      "publish_topic_suffix": "lps25hb_pressure",
+      "publish_interval_sec": 8
+    }
+  ]
+}

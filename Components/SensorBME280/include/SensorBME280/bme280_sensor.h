@@ -1,53 +1,66 @@
 #pragma once
 
 #include "bme280_defs.h"
-#include "Interfaces/ii2c_bus.h" // Include the INTERFACE
+#include "Interfaces/isensor.h"   // <<< Inherit from ISensor
+#include "Interfaces/ii2c_bus.h"
+#include "Interfaces/sensor_config.h" // <<< Include SensorConfig
 #include <string>
 #include <cstdint>
 #include <vector>
 #include <optional>
+#include <memory> // For std::unique_ptr
 
 namespace SensorHub::Components {
 
-class BME280_Sensor {
+// Inherit from ISensor
+class BME280_Sensor : public SensorHub::Interfaces::ISensor {
 public:
     /**
-     * @brief Constructor: Uses an II2C_Bus interface to communicate.
-     * @param manager A reference to an object implementing the II2C_Bus interface.
-     * @param sensor_address The 7-bit I2C address of the BME280 sensor.
+     * @brief Factory method to create a BME280 sensor instance.
+     * @param config The sensor configuration parsed from JSON.
+     * @param i2c_bus Reference to the I2C bus manager for communication.
+     * @return std::unique_ptr<ISensor> to the created sensor, or nullptr on failure.
+     */
+    static std::unique_ptr<SensorHub::Interfaces::ISensor> create(
+        const SensorHub::Interfaces::SensorConfig& config,
+        std::shared_ptr<SensorHub::Interfaces::II2C_Bus> i2c_bus);
+
+    /**
+     * @brief Constructor (now protected/private, use create factory).
+     * Initializes the sensor using specific config and I2C bus.
+     * @param config The sensor configuration.
+     * @param i2c_bus Reference to the I2C bus manager.
      * @throws std::runtime_error if initialization fails.
      */
-    BME280_Sensor(SensorHub::Interfaces::II2C_Bus& manager, // Use the INTERFACE type
-                   uint8_t sensor_address = BME280::DEFAULT_ADDRESS);
+    BME280_Sensor(const SensorHub::Interfaces::SensorConfig& config,
+        std::shared_ptr<SensorHub::Interfaces::II2C_Bus> i2c_bus); // Takes config struct
 
-    /**
-     * @brief Destructor.
-     */
-    ~BME280_Sensor() = default;
+    ~BME280_Sensor() override = default;
 
-    /**
-     * @brief Reads the current temperature, humidity, and pressure data.
-     * @return std::optional<BME280Data> containing the data if successful,
-     * std::nullopt otherwise.
-     */
-    std::optional<BME280Data> readData();
+    // --- ISensor Interface Implementation ---
+    std::string getType() const override;
+    bool isEnabled() const override;
+    std::chrono::seconds getPublishInterval() const override;
+    std::string getTopicSuffix() const override;
+    nlohmann::json readDataJson() override; // <<< Changed return type
 
-    // Delete copy constructor and assignment operator
+    // Delete copy/move operations
     BME280_Sensor(const BME280_Sensor&) = delete;
     BME280_Sensor& operator=(const BME280_Sensor&) = delete;
-    // Allow move semantics (default is likely sufficient)
-    BME280_Sensor(BME280_Sensor&&) noexcept = default;
-    BME280_Sensor& operator=(BME280_Sensor&&) noexcept = delete;
-
+    BME280_Sensor(BME280_Sensor&&) = delete;
+    BME280_Sensor& operator=(BME280_Sensor&&) = delete;
 
 private:
-    // --- Private Helper Methods ---
+    // Original method to read structured data (now private helper)
+    std::optional<BME280Data> readDataInternal();
+
+    // Helper methods (remain private)
     bool checkDevice();
     bool readCalibrationData();
     bool configureSensor();
     std::optional<std::vector<uint8_t>> readRawMeasurementData();
 
-    // --- Compensation Calculations ---
+    // Compensation Calculations (remain private)
     BME280Data compensate(int32_t adc_T, int32_t adc_P, int32_t adc_H);
     double compensate_T(int32_t adc_T);
     double compensate_P(int32_t adc_P);
@@ -70,10 +83,10 @@ private:
     // Intermediate temperature value needed for P and H compensation
     int32_t t_fine_ = 0;
 
-    // --- Member Variables ---
-    SensorHub::Interfaces::II2C_Bus& i2c_bus_ref_; // Store INTERFACE reference
-    uint8_t address_;                             // Sensor's specific I2C address
-    bool initialized_ = false;                    // Flag indicating successful initialization
+    // Member Variables
+    std::shared_ptr<SensorHub::Interfaces::II2C_Bus> i2c_bus_sptr_;
+    SensorHub::Interfaces::SensorConfig config_; // Store the config
+    bool initialized_ = false;
 };
 
 } // namespace SensorHub::Components
