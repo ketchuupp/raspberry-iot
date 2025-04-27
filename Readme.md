@@ -13,6 +13,7 @@ An accompanying HTML/JavaScript dashboard (`dashboard.html` - *Note: You need to
 * Reads data from multiple sensor types based on `config.json`.
 * Currently supports:
     * BME280 (Temperature, Humidity, Pressure) via I2C.
+    * LPS25HB (Temperature, Pressure) via I2C.
     * Dummy (Generates example data, useful as a template/test).
 * Publishes data to configurable MQTT topics in JSON format.
 * Abstracted sensor interface (`ISensor`).
