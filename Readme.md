@@ -2,11 +2,11 @@
 
 ## Overview
 
-This project implements a C++ application designed to run on a Raspberry Pi. It reads data from configured sensors (e.g., BME280 via I2C, Dummy sensor) based on a `config.json` file and publishes this data to an MQTT broker.
+This project implements a C++ application designed to run on a Raspberry Pi. It reads data from configured sensors (e.g., BME280 via I2C) based on a `config.json` file and publishes this data to an MQTT broker.
 
 The project utilizes modern C++ (C++23), CMake for building, and supports cross-compilation for Raspberry Pi (ARM Linux) from a macOS/Linux host using Docker. Dependencies like Paho MQTT and nlohmann/json are managed via CMake's FetchContent. The main application logic is encapsulated within the `App` class.
 
-An accompanying HTML/JavaScript dashboard (`dashboard.html` - *Note: You need to save this separately*) can subscribe to the MQTT broker to display the sensor data in real-time.
+An accompanying HTML/JavaScript dashboard (`dashboard.html`) can subscribe to the MQTT broker to display the sensor data in real-time.
 
 ## Features
 
@@ -21,7 +21,7 @@ An accompanying HTML/JavaScript dashboard (`dashboard.html` - *Note: You need to
 * Abstracted I2C interface (`II2C_Bus`) with implementation for Linux (`ioctl`).
 * Cross-compilation support for Raspberry Pi (arm-linux-gnueabihf) using Docker.
 * Dependencies managed via CMake FetchContent.
-* Simple build script (`build_rpi.sh`) for the target application.
+* Simple build script (`build.sh`) for the target application.
 
 ## Prerequisites
 
@@ -62,14 +62,14 @@ Use the provided script from the project root directory on your development mach
     ```
 2.  **Run the build script:**
     ```bash
-    ./build_rpi.sh
+    ./build.sh
     ```
-3.  **Output:** The ARM Linux executable will be located in `build/rpi_build/Application/Sensor_tester`.
+3.  **Output:** The ARM Linux executable will be located in `build/Application/Sensor_tester`.
 
 ## Running on Raspberry Pi
 
 1.  **Copy Files:**
-    * Copy the compiled executable (`build/rpi_build/Application/Sensor_tester`) from your development machine to the Raspberry Pi (e.g., using `scp`).
+    * Copy the compiled executable (`build/Application/Sensor_tester`) from your development machine to the Raspberry Pi (e.g., using `scp`).
     * Copy the `config.json` file to the same directory on the Raspberry Pi where you place the executable. Ensure `config.json` contains the desired sensor configurations.
 2.  **Ensure Permissions:** On the RPi, make the executable runnable: `chmod +x ./Sensor_tester`
 3.  **Run:** Execute the application: `./Sensor_tester` (or `./Sensor_tester path/to/config.json` if it's elsewhere).
